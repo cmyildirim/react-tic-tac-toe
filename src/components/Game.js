@@ -6,7 +6,8 @@ export default class Game extends React.Component {
       super();
       this.state = {
         history: [{
-          squares: Array(9).fill(null)
+          squares: Array(9).fill(null),
+          coordinates: Array(2).fill(null)
         }],
         stepNumber: 0,
         xIsNext: true
@@ -17,13 +18,15 @@ export default class Game extends React.Component {
       const history = this.state.history.slice(0, this.state.stepNumber + 1);
       const current = history[history.length - 1];
       const squares = current.squares.slice();
+      
       if (calculateWinner(squares) || squares[i]) {
         return;
       }
       squares[i] = this.state.xIsNext ? 'X' : 'O';
       this.setState({
         history: history.concat([{
-          squares: squares
+          squares: squares,
+          coordinates: [Math.ceil((i+1)/3), (i%3)+1]
         }]),
         stepNumber: history.length,
         xIsNext: !this.state.xIsNext
@@ -43,11 +46,11 @@ export default class Game extends React.Component {
       const winner = calculateWinner(current.squares);
       const moves = history.map((step, move) => {
         const desc = move ?
-          'Hamle #' + move :
+          'Hamle #' + move.toString() + " " + ((move%2)===0?'O':'X') + ">" + step.coordinates[0] + "," + step.coordinates[1]:
           'Oyun Başlangıcı';
         return (
           <li key={move}>
-            {<button onClick={() => this.jumpTo(move)}>{desc}</button>}
+            {<button onClick={() => this.jumpTo(move)}>{desc} </button>}
           </li>
         );
       });
@@ -83,7 +86,7 @@ export default class Game extends React.Component {
       [1, 4, 7],
       [2, 5, 8],
       [0, 4, 8],
-      [2, 4, 6],
+      [2, 4, 6]
     ];
     for (let i = 0; i < lines.length; i++) {
       const [a, b, c] = lines[i];
