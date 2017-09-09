@@ -40,7 +40,7 @@ export default class Game extends React.Component {
         }
       ]),
       stepNumber: history.length,
-      xIsNext: !this.state.xIsNext,
+      xIsNext: !this.state.xIsNext
     });
   }
 
@@ -53,14 +53,14 @@ export default class Game extends React.Component {
         break;
       case "resetGame":
         this.setState({
-            history: [
-                {
-                  squares: Array(this.state.size * this.state.size).fill(null),
-                  coordinates: Array(2).fill(null)
-                }
-              ],
-              stepNumber: 0,
-              xIsNext: true
+          history: [
+            {
+              squares: Array(this.state.size * this.state.size).fill(null),
+              coordinates: Array(2).fill(null)
+            }
+          ],
+          stepNumber: 0,
+          xIsNext: true
         });
         break;
       default:
@@ -102,10 +102,10 @@ export default class Game extends React.Component {
         </li>
       );
     });
-    if(!this.state.isDesc) moves.reverse();
+    if (!this.state.isDesc) moves.reverse();
     let status;
     if (winner) {
-      status = "Kazanan: " + winner;
+      status = "Kazanan: " + winner.winner;
     } else {
       status = "Hamle sırası: " + (this.state.xIsNext ? "X" : "O");
     }
@@ -116,9 +116,10 @@ export default class Game extends React.Component {
         </div>
         <div className="game-board">
           <Board
-            squares={current.squares}
-            onClick={i => this.handleClick(i)}
-            size={this.state.size}
+              squares={current.squares}
+              winner={winner}
+              onClick={i => this.handleClick(i)}
+              size={this.state.size}
           />
         </div>
         <div className="game-info">
@@ -132,18 +133,23 @@ export default class Game extends React.Component {
 
 function calculateWinner(squares, size) {
   if (!size) throw new Error("Size parameter is required");
+  let winnerSquares = Array(size).fill(null);
   //first checking horizontal lines
   for (let i = 0; i < size * size; i = i + size) {
     if (squares[i]) {
       let curVal = squares[i];
       let weHaveAWinner = true;
+      winnerSquares.push(i);
       for (let j = i + 1; j < i + size; j++) {
+        winnerSquares.push(j);
         if (squares[j] !== curVal) {
           weHaveAWinner = false;
+          winnerSquares = [];
           break;
         }
       }
-      if (weHaveAWinner) return curVal;
+      if (weHaveAWinner)
+        return { winner: curVal, winnerSquares: winnerSquares };
     }
   }
   //now checking verticals
@@ -151,38 +157,48 @@ function calculateWinner(squares, size) {
     if (squares[i]) {
       let curVal = squares[i];
       let weHaveAWinner = true;
+      winnerSquares.push(i);
       for (let j = i + size; j < size * size; j = j + size) {
+        winnerSquares.push(j);
         if (squares[j] !== curVal) {
           weHaveAWinner = false;
+          winnerSquares = [];
           break;
         }
       }
-      if (weHaveAWinner) return curVal;
+      if (weHaveAWinner)
+        return { winner: curVal, winnerSquares: winnerSquares };
     }
   }
   //now checking diagonals
   if (squares[0]) {
     let curVal = squares[0];
     let weHaveAWinner = true;
+    winnerSquares.push(0);
     for (let i = size + 1; i < size * size; i = i + size + 1) {
+      winnerSquares.push(i);
       if (squares[i] !== curVal) {
         weHaveAWinner = false;
+        winnerSquares = [];
         break;
       }
     }
-    if (weHaveAWinner) return curVal;
+    if (weHaveAWinner) return { winner: curVal, winnerSquares: winnerSquares };
   }
 
   if (squares[size - 1]) {
     let curVal = squares[size - 1];
     let weHaveAWinner = true;
+    winnerSquares.push(size - 1);
     for (let i = 2 * size - 2; i < size * size - 1; i = i + size - 1) {
+      winnerSquares.push(i);
       if (squares[i] !== curVal) {
         weHaveAWinner = false;
+        winnerSquares = [];
         break;
       }
     }
-    if (weHaveAWinner) return curVal;
+    if (weHaveAWinner) return { winner: curVal, winnerSquares: winnerSquares };
   }
   return null;
 }
