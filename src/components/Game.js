@@ -1,11 +1,12 @@
 import React from "react";
 import Board from "./Board";
 import Options from "./Options";
+import calculateWinner from "../utilities/calculateWinner";
 
 export default class Game extends React.Component {
   constructor() {
     super();
-    const size = 4;
+    const size = 3;
     this.state = {
       history: [
         {
@@ -52,19 +53,34 @@ export default class Game extends React.Component {
         });
         break;
       case "resetGame":
+        this.resetGame();
+        break;
+      case "increaseSize":
         this.setState({
-          history: [
-            {
-              squares: Array(this.state.size * this.state.size).fill(null),
-              coordinates: Array(2).fill(null)
-            }
-          ],
-          stepNumber: 0,
-          xIsNext: true
+          size: this.state.size + 1
         });
+        this.resetGame();
+        break;
+      case "decreaseSize":
+        this.setState({
+          size: this.state.size - 1
+        });
+        this.resetGame();
         break;
       default:
     }
+  }
+  resetGame() {
+    this.setState({
+      history: [
+        {
+          squares: Array(this.state.size * this.state.size).fill(null),
+          coordinates: Array(2).fill(null)
+        }
+      ],
+      stepNumber: 0,
+      xIsNext: true
+    });
   }
 
   jumpTo(step) {
@@ -116,10 +132,10 @@ export default class Game extends React.Component {
         </div>
         <div className="game-board">
           <Board
-              squares={current.squares}
-              winner={winner}
-              onClick={i => this.handleClick(i)}
-              size={this.state.size}
+            squares={current.squares}
+            winner={winner}
+            onClick={i => this.handleClick(i)}
+            size={this.state.size}
           />
         </div>
         <div className="game-info">
@@ -129,76 +145,4 @@ export default class Game extends React.Component {
       </div>
     );
   }
-}
-
-function calculateWinner(squares, size) {
-  if (!size) throw new Error("Size parameter is required");
-  let winnerSquares = Array(size).fill(null);
-  //first checking horizontal lines
-  for (let i = 0; i < size * size; i = i + size) {
-    if (squares[i]) {
-      let curVal = squares[i];
-      let weHaveAWinner = true;
-      winnerSquares.push(i);
-      for (let j = i + 1; j < i + size; j++) {
-        winnerSquares.push(j);
-        if (squares[j] !== curVal) {
-          weHaveAWinner = false;
-          winnerSquares = [];
-          break;
-        }
-      }
-      if (weHaveAWinner)
-        return { winner: curVal, winnerSquares: winnerSquares };
-    }
-  }
-  //now checking verticals
-  for (let i = 0; i < size; i++) {
-    if (squares[i]) {
-      let curVal = squares[i];
-      let weHaveAWinner = true;
-      winnerSquares.push(i);
-      for (let j = i + size; j < size * size; j = j + size) {
-        winnerSquares.push(j);
-        if (squares[j] !== curVal) {
-          weHaveAWinner = false;
-          winnerSquares = [];
-          break;
-        }
-      }
-      if (weHaveAWinner)
-        return { winner: curVal, winnerSquares: winnerSquares };
-    }
-  }
-  //now checking diagonals
-  if (squares[0]) {
-    let curVal = squares[0];
-    let weHaveAWinner = true;
-    winnerSquares.push(0);
-    for (let i = size + 1; i < size * size; i = i + size + 1) {
-      winnerSquares.push(i);
-      if (squares[i] !== curVal) {
-        weHaveAWinner = false;
-        winnerSquares = [];
-        break;
-      }
-    }
-    if (weHaveAWinner) return { winner: curVal, winnerSquares: winnerSquares };
-  }
-
-  if (squares[size - 1]) {
-    let curVal = squares[size - 1];
-    let weHaveAWinner = true;
-    winnerSquares.push(size - 1);
-    for (let i = 2 * size - 2; i < size * size - 1; i = i + size - 1) {
-      winnerSquares.push(i);
-      if (squares[i] !== curVal) {
-        weHaveAWinner = false;
-        winnerSquares = [];
-        break;
-      }
-    }
-    if (weHaveAWinner) return { winner: curVal, winnerSquares: winnerSquares };
-  }
-  return null;
 }
