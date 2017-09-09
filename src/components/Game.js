@@ -1,5 +1,6 @@
 import React from "react";
 import Board from "./Board";
+import Options from "./Options";
 
 export default class Game extends React.Component {
   constructor() {
@@ -14,7 +15,8 @@ export default class Game extends React.Component {
       ],
       stepNumber: 0,
       xIsNext: true,
-      size: size
+      size: size,
+      isDesc: true
     };
   }
 
@@ -38,8 +40,31 @@ export default class Game extends React.Component {
         }
       ]),
       stepNumber: history.length,
-      xIsNext: !this.state.xIsNext
+      xIsNext: !this.state.xIsNext,
     });
+  }
+
+  handleOptions(option) {
+    switch (option) {
+      case "toggle":
+        this.setState({
+          isDesc: !this.state.isDesc
+        });
+        break;
+      case "resetGame":
+        this.setState({
+            history: [
+                {
+                  squares: Array(this.state.size * this.state.size).fill(null),
+                  coordinates: Array(2).fill(null)
+                }
+              ],
+              stepNumber: 0,
+              xIsNext: true
+        });
+        break;
+      default:
+    }
   }
 
   jumpTo(step) {
@@ -77,6 +102,7 @@ export default class Game extends React.Component {
         </li>
       );
     });
+    if(!this.state.isDesc) moves.reverse();
     let status;
     if (winner) {
       status = "Kazanan: " + winner;
@@ -85,6 +111,9 @@ export default class Game extends React.Component {
     }
     return (
       <div className="game">
+        <div className="options">
+          <Options onClick={option => this.handleOptions(option)} />
+        </div>
         <div className="game-board">
           <Board
             squares={current.squares}
