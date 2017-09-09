@@ -4,15 +4,17 @@ import Board from "./Board";
 export default class Game extends React.Component {
   constructor() {
     super();
+    const size = 4;
     this.state = {
       history: [
         {
-          squares: Array(9).fill(null),
+          squares: Array(size * size).fill(null),
           coordinates: Array(2).fill(null)
         }
       ],
       stepNumber: 0,
-      xIsNext: true
+      xIsNext: true,
+      size: size
     };
   }
 
@@ -21,7 +23,7 @@ export default class Game extends React.Component {
     const current = history[history.length - 1];
     const squares = current.squares.slice();
 
-    if (calculateWinner(squares) || squares[i]) {
+    if (calculateWinner(squares, this.state.size) || squares[i]) {
       return;
     }
     squares[i] = this.state.xIsNext ? "X" : "O";
@@ -29,7 +31,10 @@ export default class Game extends React.Component {
       history: history.concat([
         {
           squares: squares,
-          coordinates: [Math.ceil((i + 1) / 3), i % 3 + 1]
+          coordinates: [
+            Math.ceil((i + 1) / this.state.size),
+            i % this.state.size + 1
+          ]
         }
       ]),
       stepNumber: history.length,
@@ -47,7 +52,7 @@ export default class Game extends React.Component {
   render() {
     const history = this.state.history;
     const current = history[this.state.stepNumber];
-    const winner = calculateWinner(current.squares);
+    const winner = calculateWinner(current.squares, this.state.size);
     const moves = history.map((step, move) => {
       let isCurrentMove = move === this.state.stepNumber;
       const desc = move
@@ -81,7 +86,11 @@ export default class Game extends React.Component {
     return (
       <div className="game">
         <div className="game-board">
-          <Board squares={current.squares} onClick={i => this.handleClick(i)} />
+          <Board
+            squares={current.squares}
+            onClick={i => this.handleClick(i)}
+            size={this.state.size}
+          />
         </div>
         <div className="game-info">
           <div>{status}</div>
@@ -92,22 +101,59 @@ export default class Game extends React.Component {
   }
 }
 
-function calculateWinner(squares) {
-  const lines = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [2, 4, 6]
-  ];
-  for (let i = 0; i < lines.length; i++) {
-    const [a, b, c] = lines[i];
-    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return squares[a];
+function calculateWinner(squares, size) {
+  if (!size) throw new Error("Size parameter is required");
+  //first checking horizontal lines
+  for (let i = 0; i < size * size; i = i + size) {
+    if (squares[i]) {
+      let curVal = squares[i];
+      let weHaveAWinner = true;
+      for (let j = i + 1; j < i + size; j++) {
+        if (squares[j] !== curVal) {
+          weHaveAWinner = false;
+          break;
+        }
+      }
+      if (weHaveAWinner) return curVal;
     }
+  }
+  //now checking verticals
+  for (let i = 0; i < size; i++) {
+    if (squares[i]) {
+      let curVal = squares[i];
+      let weHaveAWinner = true;
+      for (let j = i + size; j < size * size; j = j + size) {
+        if (squares[j] !== curVal) {
+          weHaveAWinner = false;
+          break;
+        }
+      }
+      if (weHaveAWinner) return curVal;
+    }
+  }
+  //now checking diagonals
+  if (squares[0]) {
+    let curVal = squares[0];
+    let weHaveAWinner = true;
+    for (let i = size + 1; i < size * size; i = i + size + 1) {
+      if (squares[i] !== curVal) {
+        weHaveAWinner = false;
+        break;
+      }
+    }
+    if (weHaveAWinner) return curVal;
+  }
+
+  if (squares[size - 1]) {
+    let curVal = squares[size - 1];
+    let weHaveAWinner = true;
+    for (let i = 2 * size - 2; i < size * size - 1; i = i + size - 1) {
+      if (squares[i] !== curVal) {
+        weHaveAWinner = false;
+        break;
+      }
+    }
+    if (weHaveAWinner) return curVal;
   }
   return null;
 }
